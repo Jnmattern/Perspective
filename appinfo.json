@@ -1,0 +1,17 @@
+{
+  "uuid": "d4f886e0-a4f4-49d0-8492-2ce6e27d7f0a",
+  "shortName": "Perspective",
+  "longName": "Perspective",
+  "companyName": "Jnm",
+  "versionCode": 1,
+  "versionLabel": "1.0.0",
+  "watchapp": {
+    "watchface": true
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": []
+  }
+}
