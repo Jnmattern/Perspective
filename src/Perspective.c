@@ -8,12 +8,18 @@
 #define EYEZ 200
 #define SHIFT 8
 
+#define NIGHT_MODE true
+#define NIGHT_MODE_OFF_HOUR 8
+#define NIGHT_MODE_ON_HOUR 18
+
 static Window *window;
-Layer *rootLayer, *layer;
-AppTimer *timer;
+static Layer *rootLayer, *layer;
+static AppTimer *timer;
 static int32_t a=0, b=0, c=0;
-int32_t cosa, sina, cosb, sinb, cosc, sinc;
+static int32_t cosa, sina, cosb, sinb, cosc, sinc;
+static int hour;
 static int d[6];
+static GRect fullScreenRect = { { 0, 0 }, { 144, 168 } };
 
 static const uint16_t __ACOS[1001] = {
 	32768, 32108, 31834, 31624, 31447, 31291, 31150, 31020, 30899, 30785, 30678, 30576, 30478, 30384, 30293, 30206, 30122, 30040, 29960, 29883,
@@ -247,15 +253,30 @@ static void drawPoint(GContext *ctx, const GPoint3 *P) {
 	GPoint S;
 	
 	projectPoint(P, &S);
-	graphics_fill_circle(ctx, S, 1);
+	graphics_fill_rect(ctx, GRect(S.x-1, S.y-1, 4, 4), 1, GCornersAll);
+	//graphics_fill_circle(ctx, S, 1);
 }
 
 static void updateLayer(Layer *layer, GContext *ctx) {
 	int i, j;
 	GPoint3 U;
 	
+#if NIGHT_MODE
+	if ( (hour >= NIGHT_MODE_OFF_HOUR) && (hour < NIGHT_MODE_ON_HOUR) ) {
+		// DAY
+		graphics_context_set_stroke_color(ctx, GColorWhite);
+		graphics_context_set_fill_color(ctx, GColorWhite);
+	} else {
+		//NIGHT
+		graphics_context_set_fill_color(ctx, GColorWhite);
+		graphics_fill_rect(ctx, fullScreenRect, 0, GCornerNone);
+		graphics_context_set_stroke_color(ctx, GColorBlack);
+		graphics_context_set_fill_color(ctx, GColorBlack);
+	}
+#else
 	graphics_context_set_stroke_color(ctx, GColorWhite);
 	graphics_context_set_fill_color(ctx, GColorWhite);
+#endif
 	
 	cosa = cos_lookup(a);
 	cosb = cos_lookup(b);
@@ -329,10 +350,13 @@ static void timerCallback(void *data) {
 
 static void handleTick(struct tm *t, TimeUnits units_changed) {
 	int h = t->tm_hour;
+	hour = h;
+	
 	if (!clock_is_24h_style()) {
 		h %= 12;
 		if (h==0) h = 12;
 	}
+	
 	d[0] = h/10;
 	d[1] = h%10;
 	d[2] = t->tm_min/10;
