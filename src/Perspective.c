@@ -8,7 +8,7 @@
 #define EYEZ 200
 #define SHIFT 8
 
-#define NIGHT_MODE true
+#define NIGHT_MODE false
 #define NIGHT_MODE_OFF_HOUR 8
 #define NIGHT_MODE_ON_HOUR 18
 
@@ -258,7 +258,7 @@ static void drawPoint(GContext *ctx, const GPoint3 *P) {
 }
 
 static void updateLayer(Layer *layer, GContext *ctx) {
-	int i, j;
+	int i, j, n;
 	GPoint3 U;
 	
 #if NIGHT_MODE
@@ -287,46 +287,13 @@ static void updateLayer(Layer *layer, GContext *ctx) {
 
 	for (j=0; j<9; j++) {
 		for (i=0; i<9; i++) {
-			if (DIGIT(d[0], i, j)) {
-				U.x = (i-4)*(SIZE>>3)-(SIZE>>1)-OFFSET;
-				U.y = (j-4)*(SIZE>>3)-SIZE-2*OFFSET;
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
-			}
-
-			if (DIGIT(d[1], i, j)) {
-				U.x = (i-4)*(SIZE>>3)+(SIZE>>1)+OFFSET;
-				U.y = (j-4)*(SIZE>>3)-SIZE-2*OFFSET;
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
-			}
-			
-			if (DIGIT(d[2], i, j)) {
-				U.x = (i-4)*(SIZE>>3)-(SIZE>>1)-OFFSET;
-				U.y = (j-4)*(SIZE>>3);
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
-			}
-
-			if (DIGIT(d[3], i, j)) {
-				U.x = (i-4)*(SIZE>>3)+(SIZE>>1)+OFFSET;
-				U.y = (j-4)*(SIZE>>3);
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
-			}
-
-			if (DIGIT(d[4], i, j)) {
-				U.x = (i-4)*(SIZE>>3)-(SIZE>>1)-OFFSET;
-				U.y = (j-4)*(SIZE>>3)+SIZE+2*OFFSET;
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
-			}
-
-			if (DIGIT(d[5], i, j)) {
-				U.x = (i-4)*(SIZE>>3)+(SIZE>>1)+OFFSET;
-				U.y = (j-4)*(SIZE>>3)+SIZE+2*OFFSET;
-				U.z = ZPOS;
-				drawPoint(ctx, &U);
+			for (n=0; n<6; n++) {
+				if (DIGIT(d[n], i, j)) {
+					U.x = (i-4)*(SIZE>>3) + (2*(n%2)-1)*((SIZE>>1)+OFFSET);
+					U.y = (j-4)*(SIZE>>3) + ((n/2)-1)*(SIZE+2*OFFSET);
+					U.z = ZPOS;
+					drawPoint(ctx, &U);
+				}
 			}
 		}
 	}
