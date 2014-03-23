@@ -1,17 +1,20 @@
 {
-  "uuid": "d4f886e0-a4f4-49d0-8492-2ce6e27d7f0a",
-  "shortName": "Perspective",
-  "longName": "Perspective",
-  "companyName": "Jnm",
-  "versionCode": 1,
-  "versionLabel": "1.1.0",
-  "watchapp": {
-    "watchface": true
-  },
-  "appKeys": {
-    "dummy": 0
-  },
-  "resources": {
-    "media": []
-  }
+    "versionLabel": "1.1.0",
+    "uuid": "d4f886e0-a4f4-49d0-8492-2ce6e27d7f0a",
+    "appKeys": {
+        "dummy": 0
+    },
+    "longName": "Perspective",
+    "versionCode": 1,
+    "capabilities": [
+        ""
+    ],
+    "shortName": "Perspective",
+    "companyName": "Jnm",
+    "watchapp": {
+        "watchface": true
+    },
+    "resources": {
+        "media": []
+    }
 }
