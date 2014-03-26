@@ -357,6 +357,7 @@ static void init(void) {
 	tick_timer_service_subscribe(SECOND_UNIT, handleTick);
 	
 	accel_data_service_subscribe(0, handleAccel);
+	accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
 	timerCallback(NULL);
 }
 
