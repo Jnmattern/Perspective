@@ -194,33 +194,35 @@ char digit[810] = {	 // 10 x 9 x 9
 
 GPoint3 eye = { 0, 0, EYEZ };
 
-static inline float mySqrtf(const float x) {
-	const float xhalf = 0.5f*x;
-	union { float x; int i; 	} u;
-	u.x = x;
-	u.i = 0x5f3759df - (u.i >> 1);
-	return x*u.x*(1.5f - xhalf*u.x*u.x);
+#define iter1(N) try = root + (1 << (N)); if (n >= try << (N)) { n -= try << (N); root |= 2 << (N); }
+uint32_t Wilco_sqrt (uint32_t n)
+{
+	uint32_t root = 0, try;
+	iter1 (15); iter1 (14); iter1 (13); iter1 (12); iter1 (11);
+	iter1 (10); iter1 ( 9); iter1 ( 8); iter1 ( 7); iter1 ( 6);
+	iter1 ( 5); iter1 ( 4); iter1 ( 3); iter1 ( 2); iter1 ( 1); iter1 ( 0);
+	return root >> 1;
 }
 
 
-static inline int32_t myArccos(float x) {
-	if (x < -1.0) x = -1.0;
-	if (x > 1.0) x = 1.0;
+static inline int32_t myArccos(int16_t x) {
+	if (x < -500.0) x = -500.0;
+	if (x >  500.0) x = 500.0;
 	
-	int i = (int)(500.0*(x+1.0));
+	int i = x+500;
 	//	APP_LOG(APP_LOG_LEVEL_DEBUG, "myArccos(%4d->%3d)", (int)(x*1000), i);
 
 	return __ACOS[i];
 }
 
-static inline float length(const GPoint3 *v) {
-	return mySqrtf((float)(v->x*v->x + v->y*v->y + v->z*v->z));
+static inline int16_t length(const GPoint3 *v) {
+	return Wilco_sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
 }
 
 static void angles(const GPoint3 *v, int32_t *ax, int32_t *ay, int32_t *az) {
-	float s = length(v);
-	*ax = myArccos((float)v->y/s) - TRIG_MAX_ANGLE/4;
-	*ay = myArccos((float)v->x/s) - TRIG_MAX_ANGLE/4;
+	int16_t s = length(v);
+	*ax = myArccos(500*v->y/s) - TRIG_MAX_ANGLE/4;
+	*ay = myArccos(500*v->x/s) - TRIG_MAX_ANGLE/4;
 	*az = 0;
 
 	//	APP_LOG(APP_LOG_LEVEL_DEBUG, "length(%d, %d, %d) = %d / angles : %d %d %d", v->x, v->y, v->z, (int)s, (int)*ax, (int)*ay, (int)*az);
@@ -355,6 +357,7 @@ static void init(void) {
 	tick_timer_service_subscribe(SECOND_UNIT, handleTick);
 	
 	accel_data_service_subscribe(0, handleAccel);
+	accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
 	timerCallback(NULL);
 }
 
