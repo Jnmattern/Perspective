@@ -4,12 +4,14 @@
   "longName": "Perspective",
   "companyName": "Jnm",
   "versionCode": 1,
-  "versionLabel": "1.1.0",
+  "versionLabel": "1.1.2",
   "watchapp": {
     "watchface": true
   },
+  "capabilities": [ "configurable" ],
   "appKeys": {
-    "dummy": 0
+    "nightstart": 3333,
+    "nightstop":  3334
   },
   "resources": {
     "media": []

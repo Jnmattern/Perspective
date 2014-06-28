@@ -8,11 +8,9 @@
 #define EYEZ 200
 #define SHIFT 8
 
-enum {
-	CONFIG_KEY_NIGHTSTART = 3333,
-	CONFIG_KEY_NIGHTSTOP = 3334
-};
-
+#define NIGHT_MODE false
+#define NIGHT_MODE_OFF_HOUR 8
+#define NIGHT_MODE_ON_HOUR 18
 
 static Window *window;
 static Layer *rootLayer, *layer;
@@ -22,7 +20,6 @@ static int32_t cosa, sina, cosb, sinb, cosc, sinc;
 static int hour;
 static int d[6];
 static GRect fullScreenRect = { { 0, 0 }, { 144, 168 } };
-static int nightStartHour = 19, nightStopHour = 7;
 
 static const uint16_t __ACOS[1001] = {
 	32768, 32108, 31834, 31624, 31447, 31291, 31150, 31020, 30899, 30785, 30678, 30576, 30478, 30384, 30293, 30206, 30122, 30040, 29960, 29883,
@@ -84,7 +81,7 @@ typedef struct {
 #define DIGIT(num, x, y) digit[(81*(num))+((y)*9)+(x)]
 
 char digit[810] = {	 // 10 x 9 x 9
-	// 0
+                     // 0
 	0,0,1,1,1,1,1,0,0,
 	0,1,1,1,1,1,1,1,0,
 	1,1,1,0,0,0,1,1,1,
@@ -94,7 +91,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,1,0,0,0,1,1,1,
 	0,1,1,1,1,1,1,1,0,
 	0,0,1,1,1,1,1,0,0,
-	
+
 	// 1
 	0,0,0,1,1,1,0,0,0,
 	0,0,1,1,1,1,0,0,0,
@@ -116,7 +113,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	0,1,1,1,0,0,0,0,0,
 	1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,
-	
+
 	// 3
 	0,0,1,1,1,1,1,0,0,
 	0,1,1,1,1,1,1,1,0,
@@ -127,7 +124,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,1,0,0,0,1,1,1,
 	0,1,1,1,1,1,1,1,0,
 	0,0,1,1,1,1,1,0,0,
-	
+
 	// 4
 	0,0,0,0,1,1,1,0,0,
 	0,0,0,1,1,1,1,0,0,
@@ -138,7 +135,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,1,1,1,1,1,1,0,
 	0,0,0,0,0,1,1,0,0,
 	0,0,0,0,0,1,1,0,0,
-	
+
 	// 5
 	1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,
@@ -149,7 +146,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,0,0,0,0,0,1,1,
 	1,1,1,1,1,1,1,1,1,
 	0,1,1,1,1,1,1,1,0,
-	
+
 	// 6
 	0,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,
@@ -160,7 +157,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,0,0,0,0,0,1,1,
 	1,1,1,1,1,1,1,1,1,
 	0,1,1,1,1,1,1,1,0,
-	
+
 	// 7
 	1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,
@@ -171,7 +168,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	0,0,0,1,1,0,0,0,0,
 	0,0,0,1,1,0,0,0,0,
 	0,0,0,1,1,0,0,0,0,
-	
+
 	// 8
 	0,1,1,1,1,1,1,1,0,
 	1,1,1,1,1,1,1,1,1,
@@ -182,7 +179,7 @@ char digit[810] = {	 // 10 x 9 x 9
 	1,1,0,0,0,0,0,1,1,
 	1,1,1,1,1,1,1,1,1,
 	0,1,1,1,1,1,1,1,0,
-	
+
 	// 9
 	0,1,1,1,1,1,1,1,0,
 	1,1,1,1,1,1,1,1,1,
@@ -197,34 +194,33 @@ char digit[810] = {	 // 10 x 9 x 9
 
 GPoint3 eye = { 0, 0, EYEZ };
 
-static inline uint16_t squareRoot(uint16_t x) {
-  uint16_t a, b;
-
-  b = x;
-  a = x = 0x3f;
-  x = b/x;
-  a = x = (x+a)>>1;
-  x = b/x;
-  a = x = (x+a)>>1;
-  x = b/x;
-  x = (x+a)>>1;
-
-  return x;
+#define iter1(N) try = root + (1 << (N)); if (n >= try << (N)) { n -= try << (N); root |= 2 << (N); }
+uint32_t Wilco_sqrt (uint32_t n)
+{
+	uint32_t root = 0, try;
+	iter1 (15); iter1 (14); iter1 (13); iter1 (12); iter1 (11);
+	iter1 (10); iter1 ( 9); iter1 ( 8); iter1 ( 7); iter1 ( 6);
+	iter1 ( 5); iter1 ( 4); iter1 ( 3); iter1 ( 2); iter1 ( 1); iter1 ( 0);
+	return root >> 1;
 }
+
 
 static inline int32_t myArccos(int16_t x) {
 	if (x < -500.0) x = -500.0;
-	if (x > 500.0) x = 500.0;
+	if (x >  500.0) x = 500.0;
 
-	return __ACOS[500+x];
+	int i = x+500;
+	//	APP_LOG(APP_LOG_LEVEL_DEBUG, "myArccos(%4d->%3d)", (int)(x*1000), i);
+
+	return __ACOS[i];
 }
 
-static inline int32_t length(const GPoint3 *v) {
-	return squareRoot(v->x*v->x + v->y*v->y + v->z*v->z);
+static inline int16_t length(const GPoint3 *v) {
+	return Wilco_sqrt(v->x*v->x + v->y*v->y + v->z*v->z);
 }
 
 static void angles(const GPoint3 *v, int32_t *ax, int32_t *ay, int32_t *az) {
-	float s = length(v);
+	int16_t s = length(v);
 	*ax = myArccos(500*v->y/s) - TRIG_MAX_ANGLE/4;
 	*ay = myArccos(500*v->x/s) - TRIG_MAX_ANGLE/4;
 	*az = 0;
@@ -234,7 +230,7 @@ static void angles(const GPoint3 *v, int32_t *ax, int32_t *ay, int32_t *az) {
 
 static inline void projectPoint(const GPoint3 *P, GPoint *S) {
 	GPoint3 T, U;
-	
+
 	U.x = P->x << SHIFT;
 	U.y = P->y << SHIFT;
 	U.z = P->z << SHIFT;
@@ -242,22 +238,22 @@ static inline void projectPoint(const GPoint3 *P, GPoint *S) {
 	T.x = U.x;
 	T.y = (U.y*cosa + U.z*sina) / TRIG_MAX_RATIO;
 	T.z = (U.z*cosa - U.y*sina) / TRIG_MAX_RATIO;
-	
+
 	U.x = (T.x*cosb - T.z*sinb) / TRIG_MAX_RATIO;
 	U.y = T.y;
 	U.z = (T.x*sinb + T.z*cosb) / TRIG_MAX_RATIO;
-	
+
 	T.x = ((U.x*cosc + U.y*sinc) / TRIG_MAX_RATIO) >> SHIFT;
 	T.y = ((U.y*cosc - U.x*sinc) / TRIG_MAX_RATIO) >> SHIFT;
 	T.z = U.z >> SHIFT;
-	
+
 	S->x = (eye.z * T.x) / (eye.z + T.z) + 72;
 	S->y = (eye.z * T.y) / (eye.z + T.z) + 84;
 }
 
 static void drawPoint(GContext *ctx, const GPoint3 *P) {
 	GPoint S;
-	
+
 	projectPoint(P, &S);
 	graphics_fill_rect(ctx, GRect(S.x-1, S.y-1, 4, 4), 1, GCornersAll);
 	//graphics_fill_circle(ctx, S, 1);
@@ -267,22 +263,29 @@ static void updateLayer(Layer *layer, GContext *ctx) {
 	int i, j, n;
 	GPoint3 U;
 
-	if (nightStartHour != nightStopHour) {
-    if ( (hour >= nightStopHour) && (hour < nightStartHour) ) {
-      // DAY
-      graphics_context_set_stroke_color(ctx, GColorWhite);
-      graphics_context_set_fill_color(ctx, GColorWhite);
-    } else {
-      //NIGHT
-      graphics_context_set_fill_color(ctx, GColorWhite);
-      graphics_fill_rect(ctx, fullScreenRect, 0, GCornerNone);
-      graphics_context_set_stroke_color(ctx, GColorBlack);
-      graphics_context_set_fill_color(ctx, GColorBlack);
-    }
-  } else {
-    graphics_context_set_stroke_color(ctx, GColorWhite);
-    graphics_context_set_fill_color(ctx, GColorWhite);
-  }
+#if NIGHT_MODE
+	if ( (hour >= NIGHT_MODE_OFF_HOUR) && (hour < NIGHT_MODE_ON_HOUR) ) {
+		// DAY
+		graphics_context_set_stroke_color(ctx, GColorWhite);
+		graphics_context_set_fill_color(ctx, GColorWhite);
+	} else {
+		//NIGHT
+		graphics_context_set_fill_color(ctx, GColorWhite);
+		graphics_fill_rect(ctx, fullScreenRect, 0, GCornerNone);
+		graphics_context_set_stroke_color(ctx, GColorBlack);
+		graphics_context_set_fill_color(ctx, GColorBlack);
+	}
+#else
+	graphics_context_set_stroke_color(ctx, GColorWhite);
+	graphics_context_set_fill_color(ctx, GColorWhite);
+#endif
+
+	cosa = cos_lookup(a);
+	cosb = cos_lookup(b);
+	cosc = cos_lookup(c);
+	sina = sin_lookup(a);
+	sinb = sin_lookup(b);
+	sinc = sin_lookup(c);
 
 	for (j=0; j<9; j++) {
 		for (i=0; i<9; i++) {
@@ -301,35 +304,28 @@ static void updateLayer(Layer *layer, GContext *ctx) {
 static void timerCallback(void *data) {
 	static AccelData ad;
 	static GPoint3 g;
-	
+
 	accel_service_peek(&ad);
-	g.x = (3*g.x + (ad.x>>5)) >> 2;
-	g.y = (3*g.y + (ad.y>>5)) >> 2;
-	g.z = (3*g.z + (ad.z>>5)) >> 2;
-	
+	g.x = ad.x>>5;
+	g.y = ad.y>>5;
+	g.z = ad.z>>5;
+
 	angles(&g, &a, &b, &c);
 
-	cosa = cos_lookup(a);
-	cosb = cos_lookup(b);
-	cosc = cos_lookup(c);
-	sina = sin_lookup(a);
-	sinb = sin_lookup(b);
-	sinc = sin_lookup(c);
-
 	layer_mark_dirty(layer);
-	
+
 	timer = app_timer_register(100, timerCallback, NULL);
 }
 
 static void handleTick(struct tm *t, TimeUnits units_changed) {
 	int h = t->tm_hour;
 	hour = h;
-	
+
 	if (!clock_is_24h_style()) {
 		h %= 12;
 		if (h==0) h = 12;
 	}
-	
+
 	d[0] = h/10;
 	d[1] = h%10;
 	d[2] = t->tm_min/10;
@@ -343,70 +339,8 @@ static void handleAccel(AccelData *data, uint32_t num_samples) {
 	// return;
 }
 
-static void logVariables(const char *msg) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "MSG: %s\n\tnightStartHour=%d\n\tnightStopHour=%d\n", msg, nightStartHour, nightStopHour);
-}
-
-static bool checkAndSaveInt(int *var, int val, int key) {
-	status_t ret;
-
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "CheckAndSaveInt : var=%d, val=%d, key=%d", *var, val, key);
-
-	if (*var != val) {
-		*var = val;
-		ret = persist_write_int(key, val);
-		if (ret < 0) APP_LOG(APP_LOG_LEVEL_DEBUG, "ERROR: persist_write_int returned %d", (int)ret);
-		return true;
-	} else {
-		return false;
-	}
-}
-
-void in_dropped_handler(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "in_dropped_handler, reason: %d", reason);
-}
-
-void in_received_handler(DictionaryIterator *received, void *context) {
-	Tuple *nightStart = dict_find(received, CONFIG_KEY_NIGHTSTART);
-	Tuple *nightStop = dict_find(received, CONFIG_KEY_NIGHTSTOP);
-
-	if (nightStart && nightStop) {
-    checkAndSaveInt(&nightStartHour, nightStart->value->int32, CONFIG_KEY_NIGHTSTART);
-    checkAndSaveInt(&nightStopHour, nightStop->value->int32, CONFIG_KEY_NIGHTSTOP);
-
-		logVariables("ReceiveHandler");
-	}
-}
-
-static void app_message_init(void) {
-	app_message_register_inbox_received(in_received_handler);
-	app_message_register_inbox_dropped(in_dropped_handler);
-	app_message_open(64, 64);
-}
-
-void readConfig() {
-	if (persist_exists(CONFIG_KEY_NIGHTSTART)) {
-		nightStartHour = persist_read_int(CONFIG_KEY_NIGHTSTART);
-	} else {
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_exists(CONFIG_KEY_NIGHTSTART) returned false");
-		nightStartHour = 19;
-	}
-
-	if (persist_exists(CONFIG_KEY_NIGHTSTOP)) {
-		nightStopHour = persist_read_int(CONFIG_KEY_NIGHTSTOP);
-	} else {
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "persist_exists(CONFIG_KEY_NIGHTSTOP) returned false");
-		nightStopHour = 7;
-	}
-
-	logVariables("readConfig");
-}
-
 static void init(void) {
 	time_t now;
-
-  readConfig();
-	app_message_init();
 
 	time(&now);
 	handleTick(localtime(&now), 0);
@@ -419,9 +353,9 @@ static void init(void) {
 	layer = layer_create(GRect(0, 0, 144, 168));
 	layer_set_update_proc(layer, updateLayer);
 	layer_add_child(rootLayer, layer);
-	
+
 	tick_timer_service_subscribe(SECOND_UNIT, handleTick);
-	
+
 	accel_data_service_subscribe(0, handleAccel);
 	timerCallback(NULL);
 }
