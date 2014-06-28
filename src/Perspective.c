@@ -267,21 +267,16 @@ static void updateLayer(Layer *layer, GContext *ctx) {
 	int i, j, n;
 	GPoint3 U;
 
-	if (nightStartHour != nightStopHour) {
-    if ( (hour >= nightStopHour) && (hour < nightStartHour) ) {
-      // DAY
-      graphics_context_set_stroke_color(ctx, GColorWhite);
-      graphics_context_set_fill_color(ctx, GColorWhite);
-    } else {
-      //NIGHT
-      graphics_context_set_fill_color(ctx, GColorWhite);
-      graphics_fill_rect(ctx, fullScreenRect, 0, GCornerNone);
-      graphics_context_set_stroke_color(ctx, GColorBlack);
-      graphics_context_set_fill_color(ctx, GColorBlack);
-    }
-  } else {
+  if ( (hour >= nightStopHour) && (hour < nightStartHour) ) {
+    // DAY
     graphics_context_set_stroke_color(ctx, GColorWhite);
     graphics_context_set_fill_color(ctx, GColorWhite);
+  } else {
+    //NIGHT
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_fill_rect(ctx, fullScreenRect, 0, GCornerNone);
+    graphics_context_set_stroke_color(ctx, GColorBlack);
+    graphics_context_set_fill_color(ctx, GColorBlack);
   }
 
 	for (j=0; j<9; j++) {

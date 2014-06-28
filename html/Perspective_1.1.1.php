@@ -43,7 +43,7 @@
 	}
 ?>
       <div data-role="rangeslider">
-<legend>Daytime Range<br />Choose the same value for both to disable night mode :</legend>
+<legend>Daytime Range<br />Tip: Choose 0 and 24 to disable night mode, choose the same value for both to inverse colors</legend>
 <?php
   echo '<input type="range" name="nightstop" id="nightstop" min="0" max="24" value="' . $nightstop . '">';
   echo '<input type="range" name="nightstart" id="nightstart" min="0" max="24" value="' . $nightstart . '">';
