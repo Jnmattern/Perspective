@@ -4,16 +4,23 @@
   "longName": "Perspective",
   "companyName": "Jnm",
   "versionCode": 1,
-  "versionLabel": "1.1.3",
+  "versionLabel": "1.3",
   "watchapp": {
     "watchface": true
   },
-  "capabilities": [ "configurable" ],
+  "capabilities": [
+    "configurable"
+  ],
   "appKeys": {
     "nightstart": 3333,
-    "nightstop":  3334
+    "nightstop": 3334
   },
   "resources": {
     "media": []
-  }
+  },
+  "targetPlatforms": [
+    "aplite",
+    "basalt"
+  ],
+  "sdkVersion": "3"
 }
