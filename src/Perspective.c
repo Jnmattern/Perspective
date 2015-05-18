@@ -8,7 +8,7 @@
 #define EYEZ 200
 #define SHIFT 8
 
-#define TIMERDELAY 10
+#define TIMERDELAY 66
 
 enum {
   CONFIG_KEY_NIGHTSTART = 3333,
@@ -250,8 +250,6 @@ static void angles(const GPoint3 *v, int32_t *ax, int32_t *ay, int32_t *az) {
   *ax = myArccos((v->y << 9)/s) - TRIG_MAX_ANGLE_BY_4;
   *ay = myArccos((v->x << 9)/s) - TRIG_MAX_ANGLE_BY_4;
   *az = 0;
-
-  //	APP_LOG(APP_LOG_LEVEL_DEBUG, "length(%d, %d, %d) = %d / angles : %d %d %d", v->x, v->y, v->z, (int)s, (int)*ax, (int)*ay, (int)*az);
 }
 
 static inline void transformPoint(const GPoint3 *P, GPoint3 *T) {
@@ -279,8 +277,6 @@ static inline void projectPoint(const GPoint3 *T, GPoint *S) {
   S->y = (eye.z * T->y) / (eye.z + T->z) + 84;
 }
 
-//static int minZ = 100000, maxZ = -100000;
-
 static void drawPoint(GContext *ctx, const GPoint3 *P) {
   GPoint S;
   GPoint3 T;
@@ -289,15 +285,13 @@ static void drawPoint(GContext *ctx, const GPoint3 *P) {
   projectPoint(&T, &S);
 
   graphics_fill_rect(ctx, GRect(S.x-1, S.y-1, 4, 4), 1, GCornersAll);
-  //if (T.z < minZ) minZ = T.z;
-  //if (T.z > maxZ) maxZ = T.z;
 }
 
 static void updateLayer(Layer *layer, GContext *ctx) {
   int i, n, curd, t;
   GPoint3 P, *U;
-  static int a = SIZE+2*OFFSET;
-  static int twoa = 2*SIZE+4*OFFSET;
+  static int c = SIZE + 2*OFFSET;
+  static int a = 2*SIZE + 4*OFFSET;
   static int step = 0;
 
   if ( (hour >= nightStopHour) && (hour < nightStartHour) ) {
@@ -317,18 +311,17 @@ static void updateLayer(Layer *layer, GContext *ctx) {
     for (i=0, U=DIGIT_OFFSET(curd); i<numPoints[curd]; i++, U++) {
       P.x = U->x + digitOffsetX[n];
       P.y = U->y + digitOffsetY[n];
-      t = ((((P.x>>1) + (P.y>>1) + step)%twoa) * TRIG_MAX_ANGLE) / twoa;
+      t = ((((P.x>>1) + (P.y>>1) + step)%a) * TRIG_MAX_ANGLE) / a;
       P.z = U->z + (cos_lookup(t)*6)/TRIG_MAX_RATIO;
+#ifdef PBL_COLOR
+      GColor8 col = (GColor8) { .argb = 0xc0 & ((P.y+a)%63 + 1) };
+      graphics_context_set_fill_color(ctx, col);
+#endif
       drawPoint(ctx, &P);
     }
   }
 
-  step = (step+4)%twoa;
-  /*
-   if (!step) {
-   APP_LOG(APP_LOG_LEVEL_DEBUG, "minZ=%d, maxZ=%d", minZ, maxZ);
-   }
-   */
+  step = (step+4)%a;
 }
 
 static void timerCallback(void *data) {
